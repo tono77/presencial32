@@ -1,0 +1,240 @@
+Last login: Mon Mar  5 17:54:58 on ttys002
+~ % psql
+psql (10.1, server 10.3)
+Type "help" for help.
+
+edgardo=# CREATE DATABASE pintagram
+edgardo-# ;
+CREATE DATABASE
+edgardo=# \c pintagram;
+psql (10.1, server 10.3)
+You are now connected to database "pintagram" as user "edgardo".
+                                                           ^
+pintagram=# create table images (id SERIAL primary key, usr_id INTEGER REFERENCES users (id), name varchar(100));
+CREATE TABLE
+pintagram=# \d images
+pintagram=# create table likes (id SERIAL primary key, usr_id INTEGER REFERENCES users (id), img_id INTEGER REFERENCES images (id))
+pintagram-# ;
+CREATE TABLE
+pintagram=# \d likes
+                            Table "public.likes"
+ Column |  Type   | Collation | Nullable |              Default              
+--------+---------+-----------+----------+-----------------------------------
+ id     | integer |           | not null | nextval('likes_id_seq'::regclass)
+ usr_id | integer |           |          | 
+ img_id | integer |           |          | 
+Indexes:
+    "likes_pkey" PRIMARY KEY, btree (id)
+Foreign-key constraints:
+    "likes_img_id_fkey" FOREIGN KEY (img_id) REFERENCES images(id)
+    "likes_usr_id_fkey" FOREIGN KEY (usr_id) REFERENCES users(id)
+
+pintagram=# drop table images;
+ERROR:  cannot drop table images because other objects depend on it
+DETAIL:  constraint likes_img_id_fkey on table likes depends on table images
+HINT:  Use DROP ... CASCADE to drop the dependent objects too.
+pintagram=# drop table CASCADE images;
+ERROR:  syntax error at or near "images"
+LINE 1: drop table CASCADE images;
+                           ^
+                              ^
+pintagram=# alter table likes ADD UNIQUE (usr_id, img_id) ;
+ALTER TABLE
+pintagram=# \d likes
+                            Table "public.likes"
+ Column |  Type   | Collation | Nullable |              Default              
+--------+---------+-----------+----------+-----------------------------------
+ id     | integer |           | not null | nextval('likes_id_seq'::regclass)
+ usr_id | integer |           |          | 
+ img_id | integer |           |          | 
+Indexes:
+    "likes_pkey" PRIMARY KEY, btree (id)
+    "likes_usr_id_img_id_key" UNIQUE CONSTRAINT, btree (usr_id, img_id)
+Foreign-key constraints:
+    "likes_img_id_fkey" FOREIGN KEY (img_id) REFERENCES images(id)
+    "likes_usr_id_fkey" FOREIGN KEY (usr_id) REFERENCES users(id)
+
+pintagram=# create table tag_images(id SERIAL, img_id INTEGER REFERENCES images (id), tag_id INTEGER REFERENCES tags (id), UNIQUE (img_id,tag_id));
+ERROR:  relation "tags" does not exist
+pintagram=# create table tag_images(id SERIAL, img_id INTEGER REFERENCES images (id), tag_id INTEGER REFERENCES tags ^Cd), UNIQUE (img_id,tag_id));
+pintagram=# create table tags (id SERIAL, name varchar(50));
+CREATE TABLE
+pintagram=# drop table tags;
+DROP TABLE
+pintagram=# create table tags (id SERIAL PRIMARY KEY, name varchar(50));
+CREATE TABLE
+pintagram=# create table tag_images(id SERIAL, img_id INTEGER REFERENCES images (id), tag_id INTEGER REFERENCES tags (id), UNIQUE (img_id,tag_id));
+CREATE TABLE
+pintagram=# \dt
+           List of relations
+ Schema |    Name    | Type  |  Owner  
+--------+------------+-------+---------
+ public | images     | table | edgardo
+ public | likes      | table | edgardo
+ public | tag_images | table | edgardo
+ public | tags       | table | edgardo
+ public | users      | table | edgardo
+(5 rows)
+
+pintagram=# \dt tag_images
+           List of relations
+ Schema |    Name    | Type  |  Owner  
+--------+------------+-------+---------
+ public | tag_images | table | edgardo
+(1 row)
+
+pintagram=# \d tag_images
+pintagram=# insert into users values (^C
+pintagram=# \d users
+pintagram=# insert into users (fullname) values ('Edgardo Ochoa');
+INSERT 0 1
+pintagram=# select * from users
+pintagram-# ;
+ id |   fullname    
+----+---------------
+  1 | Edgardo Ochoa
+(1 row)
+
+pintagram=# insert into users (fullname) values ('Pedro Zegers');
+INSERT 0 1
+pintagram=# insert into users (fullname) values ('Sebastián Fuenzalida');
+INSERT 0 1
+pintagram=# insert into users (fullname) values ('Sandra Salgado');
+INSERT 0 1
+pintagram=# select * from users;
+ id |       fullname       
+----+----------------------
+  1 | Edgardo Ochoa
+  2 | Pedro Zegers
+  3 | Sebastián Fuenzalida
+  4 | Sandra Salgado
+(4 rows)
+
+pintagram=# insert into images (user_id, name) values (1, 'imagen1.jpg');
+ERROR:  column "user_id" of relation "images" does not exist
+LINE 1: insert into images (user_id, name) values (1, 'imagen1.jpg')...
+                            ^
+pintagram=# insert into images (usr_id, name) values (1, 'imagen1.jpg');
+INSERT 0 1
+pintagram=# insert into images (usr_id, name) values (1, 'imagen2.jpg');
+INSERT 0 1
+pintagram=# insert into images (usr_id, name) values (2, 'imagen3.jpg');
+INSERT 0 1
+pintagram=# insert into images (usr_id, name) values (2, 'imagen4.jpg');
+INSERT 0 1
+pintagram=# insert into images (usr_id, name) values (3, 'imagen5.jpg');
+INSERT 0 1
+pintagram=# insert into images (usr_id, name) values (3, 'imagen6.jpg');
+INSERT 0 1
+pintagram=# insert into images (usr_id, name) values (4, 'imagen7.jpg');
+INSERT 0 1
+pintagram=# insert into images (usr_id, name) values (4, 'imagen8.jpg');
+INSERT 0 1
+pintagram=# insert into tags values ('Familiar');
+ERROR:  invalid input syntax for integer: "Familiar"
+LINE 1: insert into tags values ('Familiar');
+                                 ^
+pintagram=# insert into tags (name) values ('Familiar');
+INSERT 0 1
+pintagram=# insert into tags (name) values ('Personal');
+INSERT 0 1
+pintagram=# insert into tags (name) values ('Animal');
+INSERT 0 1
+pintagram=# insert into tags (name) values ('Porno');
+INSERT 0 1
+pintagram=# insert into tags (name) values ('Paisaje');
+INSERT 0 1
+pintagram=# insert into tags (name) values ('Selfie');
+INSERT 0 1
+pintagram=# insert into tags (name) values ('Trabajo');
+INSERT 0 1
+pintagram=# insert into tags (name) values ('Deportes');
+INSERT 0 1
+pintagram=# insert into likes (usr_id, img_id) values (1,1)
+pintagram-# ;
+INSERT 0 1
+pintagram=# insert into likes (usr_id, img_id) values (2,1);
+INSERT 0 1
+pintagram=# insert into likes (usr_id, img_id) values (3,1);
+INSERT 0 1
+pintagram=# insert into likes (usr_id, img_id) values (1,2);
+INSERT 0 1
+pintagram=# insert into likes (usr_id, img_id) values (1,3);
+INSERT 0 1
+pintagram=# insert into likes (usr_id, img_id) values (1,4);
+INSERT 0 1
+pintagram=# insert into likes (usr_id, img_id) values (4,1);
+INSERT 0 1
+pintagram=# insert into likes (usr_id, img_id) values (1,2);
+ERROR:  duplicate key value violates unique constraint "likes_usr_id_img_id_key"
+DETAIL:  Key (usr_id, img_id)=(1, 2) already exists.
+pintagram=# insert into likes (usr_id, img_id) values (2,2);
+INSERT 0 1
+pintagram=# insert into likes (usr_id, img_id) values (3,2);
+INSERT 0 1
+pintagram=# insert into likes (usr_id, img_id) values (4,2);
+INSERT 0 1
+pintagram=# insert into likes (usr_id, img_id) values (1,3);
+ERROR:  duplicate key value violates unique constraint "likes_usr_id_img_id_key"
+DETAIL:  Key (usr_id, img_id)=(1, 3) already exists.
+pintagram=# insert into likes (usr_id, img_id) values (2,3);
+INSERT 0 1
+pintagram=# insert into likes (usr_id, img_id) values (3,3);
+INSERT 0 1
+pintagram=# insert into likes (usr_id, img_id) values (4,3);
+INSERT 0 1
+pintagram=# insert into tag_images (tag_id,image_id) values (1,1);
+ERROR:  column "image_id" of relation "tag_images" does not exist
+LINE 1: insert into tag_images (tag_id,image_id) values (1,1);
+                                       ^
+pintagram=# insert into tag_images (tag_id,img_id) values (1,1);
+INSERT 0 1
+pintagram=# insert into tag_images (tag_id,img_id) values (2,1);
+INSERT 0 1
+pintagram=# insert into tag_images (tag_id,img_id) values (3,1);
+INSERT 0 1
+pintagram=# insert into tag_images (tag_id,img_id) values (2,2);
+INSERT 0 1
+pintagram=# insert into tag_images (tag_id,img_id) values (1,2);
+INSERT 0 1
+pintagram=# insert into tag_images (tag_id,img_id) values (3,2);
+INSERT 0 1
+pintagram=# insert into tag_images (tag_id,img_id) values (1,3);
+INSERT 0 1
+pintagram=# insert into tag_images (tag_id,img_id) values (2,3);
+INSERT 0 1
+pintagram=# insert into tag_images (tag_id,img_id) values (3,3);
+INSERT 0 1
+
+
+pintagram=# SELECT images.name, count(images.name) from images INNER JOIN likes ON images.id = likes.img_id group by images.name;
+    name     | count 
+-------------+-------
+ imagen4.jpg |     1
+ imagen3.jpg |     4
+ imagen1.jpg |     4
+ imagen2.jpg |     4
+(4 rows)
+
+pintagram=# select users.fullname, images.name from users inner join images on users.id = images.usr_id;
+       fullname       |    name     
+----------------------+-------------
+ Edgardo Ochoa        | imagen1.jpg
+ Edgardo Ochoa        | imagen2.jpg
+ Pedro Zegers         | imagen3.jpg
+ Pedro Zegers         | imagen4.jpg
+ Sebastián Fuenzalida | imagen5.jpg
+ Sebastián Fuenzalida | imagen6.jpg
+ Sandra Salgado       | imagen7.jpg
+ Sandra Salgado       | imagen8.jpg
+(8 rows)
+
+pintagram=# SELECT tags.name, count(tags.name) from tags INNER JOIN tag_images ON tags.id = tag_images.tag_id GROUP BY tags.name; 
+   name   | count 
+----------+-------
+ Familiar |     3
+ Animal   |     3
+ Personal |     3
+(3 rows)
+
+pintagram=# 
